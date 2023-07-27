@@ -1,0 +1,31 @@
+/* Image.css */
+
+/* Nút quay lại */
+.back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .back-button:hover {
+    background-color: rgba(255, 255, 255, 1);
+  }
+  
+  .back-button svg {
+    color: #333; /* Màu biểu tượng */
+  }
+  
+  /* Hiệu ứng nút quay lại khi hover */
+  .back-button:hover svg {
+    transform: scale(1.1);
+  }
+  
