@@ -13,12 +13,13 @@ import * as DocumentPicker from 'expo-document-picker';
 import upload_image from '../../api/upload_image'
 import text_to_voice from '../../api/conversation/text_to_voice'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Keyboard } from 'react-native'
 
 const Type = memo(() => {
     const insets= useSafeAreaInsets()
     const route= useRoute()
     const {socketState }= useContext(SocketContainerContext)
-    const {data }= useContext(AuthContext)
+    const {data, accessToken }= useContext(AuthContext)
     const [contentText, setContentText]= useState("")
     const [typing, setTyping] = useState(false);
     const [userTyping, setUserTyping] = useState();
@@ -32,36 +33,36 @@ const Type = memo(() => {
     const f= (e)=> {
       setContentText(e)
       if(e?.length === 1) {
-        socketState.emit("typing_from_client_on", {roomId: route.params?.idConversation, data: data.user, typing: true})
+        socketState.emit("typing_from_client_on", {roomId: route.params?.idConversation, data: data, typing: true})
       }
       else if(e?.length <= 0) {
-        socketState.emit("typing_from_client_off", {roomId: route.params?.idConversation, data: data.user, typing: false})
+        socketState.emit("typing_from_client_off", {roomId: route.params?.idConversation, data: data, typing: false})
       }
     }
   
       const sendMessage= ()=> {
           if(contentText.length <= 0) {
-              socketState.emit("message_from_client", {message: "like", roomId: route.params?.idConversation, sender: data.user, type_message: "like", key: uuid.v4(), createdAt: new Date()})
-              socketState.emit("typing_from_client_off", {roomId: route.params?.idConversation, data: data.user, typing: false})
-              post_message(data.user._id, route.params?.idConversation, uuid.v4(), "like", route.params?.idConversation, "like", "", data.accessToken)
-              update_last_conversation_id(route.params?.idConversation, data.accessToken, data.user?._id)
+              socketState.emit("message_from_client", {message: "like", roomId: route.params?.idConversation, sender: data, type_message: "like", key: uuid.v4(), createdAt: new Date()})
+              socketState.emit("typing_from_client_off", {roomId: route.params?.idConversation, data: data, typing: false})
+              post_message(data._id, route.params?.idConversation, uuid.v4(), "like", route.params?.idConversation, "like", "", accessToken)
+              update_last_conversation_id(route.params?.idConversation, accessToken, data?._id)
           }
           else {
-              socketState.emit("message_from_client", {message: contentText, roomId: route.params?.idConversation, sender: data.user, type_message: "text", key: uuid.v4(), createdAt: new Date()})
-              socketState.emit("typing_from_client_off", {roomId: route.params?.idConversation, data: data.user, typing: false})
-              post_message(data.user._id, route.params?.idConversation, uuid.v4(), contentText, route.params?.idConversation, "text", "", data.accessToken)
-              update_last_conversation_id(route.params?.idConversation, data.accessToken, data.user?._id)
+              socketState.emit("message_from_client", {message: contentText, roomId: route.params?.idConversation, sender: data, type_message: "text", key: uuid.v4(), createdAt: new Date()})
+              socketState.emit("typing_from_client_off", {roomId: route.params?.idConversation, data: data, typing: false})
+              post_message(data._id, route.params?.idConversation, uuid.v4(), contentText, route.params?.idConversation, "text", "", accessToken)
+              update_last_conversation_id(route.params?.idConversation, accessToken, data?._id)
               setContentText(()=> "")
           }
       }
   // 
       const sendMessageTextToVoice= async ()=> {
           if(contentText.length > 0) {
-              const voiceResult= await text_to_voice(contentText, data?.accessToken)
-              socketState.emit("message_from_client", {message: voiceResult, roomId: route.params?.idConversation, sender: data.user, type_message: "text_to_voice", key: uuid.v4(), createdAt: new Date()})
-              socketState.emit("typing_from_client_off", {roomId: route.params?.idConversation, data: data.user, typing: false})
-              post_message(data.user._id, route.params?.idConversation, uuid.v4(), voiceResult, route.params?.idConversation, "text_to_voice", "", data.accessToken)
-              update_last_conversation_id(route.params?.idConversation, data.accessToken, data.user?._id)
+              const voiceResult= await text_to_voice(contentText, accessToken)
+              socketState.emit("message_from_client", {message: voiceResult, roomId: route.params?.idConversation, sender: data, type_message: "text_to_voice", key: uuid.v4(), createdAt: new Date()})
+              socketState.emit("typing_from_client_off", {roomId: route.params?.idConversation, data: data, typing: false})
+              post_message(data._id, route.params?.idConversation, uuid.v4(), voiceResult, route.params?.idConversation, "text_to_voice", "", accessToken)
+              update_last_conversation_id(route.params?.idConversation, accessToken, data?._id)
               setContentText(()=> "")
           }
       }
@@ -88,12 +89,12 @@ const Type = memo(() => {
 
 const ChooseImage= ()=> {
     const {socketState }= useContext(SocketContainerContext)
-    const {data }= useContext(AuthContext)
+    const {data, accessToken}= useContext(AuthContext)
     const route= useRoute()
     const sendImage= async (messageImg)=> {
-        socketState.emit("message_from_client", {message: messageImg, roomId: route.params?.idConversation, sender: data.user, type_message: "image", key: uuid.v4(), createdAt: new Date()})
-        post_message(data.user?._id, route.params?.idConversation, uuid.v4(), messageImg, route.params?.idConversation, "image", "", data.accessToken)
-        update_last_conversation_id(route.params?.idConversation, data.accessToken, data.user?._id)
+        socketState.emit("message_from_client", {message: messageImg, roomId: route.params?.idConversation, sender: data, type_message: "image", key: uuid.v4(), createdAt: new Date()})
+        post_message(data?._id, route.params?.idConversation, uuid.v4(), messageImg, route.params?.idConversation, "image", "", accessToken)
+        update_last_conversation_id(route.params?.idConversation, accessToken, data?._id)
     }
     const [resultImage, setResultImage]= useState()
     const chooseImageFunction= ()=> {
@@ -133,7 +134,10 @@ const SendMessage= (props)=> {
         <TouchableHighlight underlayColor={"unset"} style={{marginLeft: 12}}>
            <>
                 {
-                    props?.contentText?.length <=0 && <TouchableHighlight onPress={()=> props?.sendMessage()} underlayColor={"unset"}>
+                    props?.contentText?.length <=0 && <TouchableHighlight onPress={()=> {
+                        props?.sendMessage()
+                        Keyboard.dismiss()
+                    }} underlayColor={"unset"}>
                     <Icons1 onPress={()=> props?.sendMessage()} name={"like1"} size={18} color={"orange"} />
                     </TouchableHighlight>
                 }
@@ -157,7 +161,7 @@ const SendMessageVoice= (props)=> {
 const TypingMessage= (props)=> {
     return (
         <View style={{position: "absolute", top: "-100%", left: 0, display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "row", padding: 10, backgroundColor: "#fff"}}>
-            <Text>{props?.userTyping} is typing </Text>
+            <Text>{props?.userTyping} đang nhập </Text>
             <TypeWriter typing={1}>...</TypeWriter>
         </View>
     )

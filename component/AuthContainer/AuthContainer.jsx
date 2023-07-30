@@ -22,11 +22,11 @@ const AuthContainer = ({children}) => {
   }, [change])
   useEffect(() => {
     (async () => {
-      AsyncStorage.getItem("uid")
-      .then(async json=> {
-        if(json) {
-          const accessToken= JSON.parse(await AsyncStorage.getItem("accessToken"))
-          const uid= JSON.parse(json)
+      try {
+        const json = await AsyncStorage.getItem("uid");
+        if (json) {
+          const accessToken = JSON.parse(await AsyncStorage.getItem("accessToken"));
+          const uid = JSON.parse(json);
           const res = await axios({
             url: `${SERVER_URL}/api/users/${uid}`,
             headers: {
@@ -39,18 +39,22 @@ const AuthContainer = ({children}) => {
           });
           const result = await res.data;
           if (res.status === 200) {
-            setData(result)
+            setData(result);
             setAuth(() => true);
           } else {
             setAuth(() => false);
           }
-          return setData(result);
+          setData(result);
+        } else {
+          setAuth(() => false);
         }
-        else {
-          setAuth(()=> false)
-        }
-      })
+      } catch (error) {
+        // Handle any errors that occur during the process here
+        console.error("Error occurred:", error);
+        setAuth(false)
+      }
     })();
+    
   }, [change]);
   useEffect(()=> {
     if(data?._id && accessToken) {

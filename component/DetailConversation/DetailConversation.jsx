@@ -42,18 +42,18 @@ const DetailConversation = () => {
   const insets = useSafeAreaInsets();
   const { socketState } = useContext(SocketContainerContext);
   const [result, setResult] = useState([]);
-  const { data } = useContext(AuthContext);
+  const { data, accessToken } = useContext(AuthContext);
   const route = useRoute();
   const query = {
     page: 1,
     limit: 9,
   };
   useEffect(() => {
-    if (data?.accessToken) {
+    if (accessToken) {
       get_message_conversationid(
         route.params.idConversation,
         setResult,
-        data.accessToken,
+        accessToken,
         query
       );
     }
@@ -67,7 +67,7 @@ const DetailConversation = () => {
     <View style={{ flex: 1, position: "relative", backgroundColor: "#fff" }}>
       <ContentConversation
         result={result}
-        meId={data?.user?._id}
+        meId={data?._id}
         socketState={socketState}
       />
       <Type />
@@ -79,20 +79,25 @@ const DetailConversation = () => {
 const ContentConversation = (props) => {
   const scrollViewRef = useRef();
   const refBottom = useRef([]);
-  const { data } = useContext(AuthContext);
+  const { data, accessToken } = useContext(AuthContext);
   refBottom.current = props?.result.map(
     (element, i) => refBottom.current[i] ?? createRef()
   );
   const renderItem = (data) => {
-    return data?.map((item, index) => (
+    return data?.map((item, index, array) => (
       <ComponentMessage
         ref={refBottom.current[index]}
         socketState={props?.socketState}
+        idConversation={item?.idConversation}
         key={item?.key}
         {...item}
         keyId={item?.key}
         meId={props?.meId}
-        accessToken={data.accessToken}
+        accessToken={accessToken}
+        isFirstMessageInChain={
+                  index === 0 ||
+                  array[index - 1]?.sender?._id !== item?.sender?._id
+                }
       />
     ));
   };
@@ -123,6 +128,9 @@ const ContentConversation = (props) => {
 export const ComponentMessage = memo(
   forwardRef((props, ref) => {
     const [reValue, setReValue] = useState(undefined);
+    const { isFirstMessageInChain } = props;
+    const route= useRoute()
+    const idConversation= route.params?.idConversation
 
     useEffect(() => {
       props?.socketState?.on("recall_message_server", (data) => {
@@ -195,10 +203,13 @@ export const ComponentMessage = memo(
                   props?.sender?._id === props?.meId ? "row-reverse" : "row",
               }}
             >
-              <Image
+              {isFirstMessageInChain ? <Image
                 style={{ width: 50, height: 50, borderRadius: 25 }}
                 source={{ uri: props?.sender?.profilePicture }}
-              />
+              /> : <View
+                style={{ width: 50, height: 50, borderRadius: 25 }}
+              ></View>}
+              
               {props?.type_message === "text" && (
                 <Text
                   style={{
